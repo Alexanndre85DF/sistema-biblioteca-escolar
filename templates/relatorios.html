@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatórios</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Relatórios</h1>
+        
+        <div class="relatorios-container">
+            <div class="relatorios-buttons">
+                <a href="{{ url_for('livros_relatorio') }}" class="relatorio-button">Livros Cadastrados</a>
+                <a href="{{ url_for('emprestimos_curso') }}" class="relatorio-button">Empréstimos em Curso</a>
+                <a href="{{ url_for('emprestimos_devolvidos') }}" class="relatorio-button">Empréstimos Devolvidos</a>
+            </div>
+
+            <a href="{{ url_for('index') }}" class="voltar-relatorios">Voltar ao Início</a>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+
+
+
+

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Livros</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1> Relatório de Livros</h1>
+        
+        <div style="margin-bottom: 15px;">
+            <a href="{{ url_for('exportar_livros_excel') }}">
+                <button class="main-button">Exportar Excel</button>
+            </a>
+            <a href="{{ url_for('exportar_livros_pdf') }}">
+                <button class="main-button">Exportar PDF</button>
+            </a>
+        </div>
+        
+
+        {% if livros %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Autor</th>
+                    <th>Disponível</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for livro in livros %}
+                <tr>
+                    <td>{{ livro.id }}</td>
+                    <td>{{ livro.titulo }}</td>
+                    <td>{{ livro.autor }}</td>
+                    <td>{{ 'Sim' if livro.disponivel else 'Não' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty-message">Nenhum livro cadastrado para mostrar.</p>
+        {% endif %}
+
+        <div class="back-container">
+            <a href="{{ url_for('relatorios') }}" class="back-button">Voltar aos Relatórios</a>
+        </div>
+    </div>
+</body>
+</html>
+
+

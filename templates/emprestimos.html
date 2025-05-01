@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Empréstimos - Sistema Biblioteca Escolar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="logo-container">
+        <img src="{{ url_for('static', filename='logosbe.png') }}" alt="Logo Sistema Biblioteca Escolar">
+    </div>
+    <div class="container">
+        <h1>Registro de Empréstimos</h1>
+
+        <form method="POST" id="formEmprestimo">
+            <div class="form-group">
+                <label for="aluno">Nome do Aluno:</label>
+                <input type="text" id="aluno" name="aluno" required>
+            </div>
+
+            <div class="form-group">
+                <label for="turma">Turma:</label>
+                <input type="text" id="turma" name="turma" required>
+            </div>
+
+            <div class="form-group">
+                <label for="telefone">Telefone para Contato:</label>
+                <input type="tel" id="telefone" name="telefone">
+            </div>
+
+            <div class="form-group">
+                <label for="livro_id">Livro:</label>
+                <select id="livro_id" name="livro_id" required>
+                    <option value="">Selecione um Livro</option>
+                    {% for livro in livros %}
+                    <option value="{{ livro.id }}">{{ livro.titulo }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="data_emprestimo">Data do Empréstimo:</label>
+                <input type="date" id="data_emprestimo" name="data_emprestimo" required>
+            </div>
+
+            <div class="form-group">
+                <label for="data_devolucao">Data para Devolução:</label>
+                <input type="date" id="data_devolucao" name="data_devolucao" required>
+            </div>
+
+            <button class="main-button" type="submit">Registrar Empréstimo</button>
+        </form>
+
+        <h2>Empréstimos em Curso</h2>
+
+        <input type="text" id="searchEmprestimo" placeholder="Pesquisar aluno ou livro..." class="search-bar" onkeyup="filtrarEmprestimos()">
+
+        {% if emprestimos %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Aluno</th>
+                    <th>Turma</th>
+                    <th>Telefone</th>
+                    <th>Livro</th>
+                    <th>Data Empréstimo</th>
+                    <th>Data para Devolução</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in emprestimos %}
+                <tr>
+                    <td>{{ e.aluno }}</td>
+                    <td>{{ e.turma }}</td>
+                    <td>{{ e.telefone }}</td>
+                    <td>{{ e.livro_titulo }}</td>
+                    <td class="data">{{ e.data_emprestimo }}</td>
+                    <td class="data">{{ e.data_devolucao }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('baixar_emprestimo', id=e.id) }}" style="display:inline;" class="form-devolucao">
+                            <input type="date" name="data_devolvido" class="data-input" required>
+                            <button type="submit" class="main-button">Dar Baixa</button>
+                        </form>
+                        <a href="{{ url_for('excluir_emprestimo', id=e.id) }}" class="delete-button">Excluir</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty-message">Nenhum empréstimo registrado ainda.</p>
+        {% endif %}
+
+        <div class="back-container">
+            <a href="{{ url_for('index') }}" class="back-button">Voltar ao Início</a>
+        </div>
+    </div>
+
+    <style>
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #333;
+    }
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+        border-color: #0056b3;
+        outline: none;
+        box-shadow: 0 0 5px rgba(0,86,179,0.2);
+    }
+    form {
+        max-width: 600px;
+        margin: 0 auto 30px;
+        padding: 20px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .main-button {
+        margin-top: 15px;
+    }
+    </style>
+
+    <script>
+    function filtrarEmprestimos() {
+        var input = document.getElementById("searchEmprestimo");
+        var filter = input.value.toLowerCase();
+        var table = document.querySelector("table");
+        var tr = table.getElementsByTagName("tr");
+
+        for (var i = 1; i < tr.length; i++) {
+            var tdAluno = tr[i].getElementsByTagName("td")[0];
+            var tdLivro = tr[i].getElementsByTagName("td")[3];
+            
+            if (tdAluno && tdLivro) {
+                var txtAluno = tdAluno.textContent || tdAluno.innerText;
+                var txtLivro = tdLivro.textContent || tdLivro.innerText;
+                
+                if (txtAluno.toLowerCase().indexOf(filter) > -1 || txtLivro.toLowerCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+    // Formatar datas na tabela
+    document.querySelectorAll('td.data').forEach(td => {
+        td.textContent = formatarData(td.textContent.trim());
+    });
+
+    // Função para formatar a data de YYYY-MM-DD para DD/MM/YYYY
+    function formatarData(data) {
+        if (!data) return '';
+        const partes = data.split('-');
+        if (partes.length !== 3) return data;
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+
+    // Configurar data mínima para hoje nos campos de data
+    var hoje = new Date().toISOString().split('T')[0];
+    document.getElementById('data_emprestimo').min = hoje;
+    document.getElementById('data_devolucao').min = hoje;
+
+    // Atualizar data mínima de devolução quando a data de empréstimo mudar
+    document.getElementById('data_emprestimo').addEventListener('change', function() {
+        document.getElementById('data_devolucao').min = this.value;
+        if (document.getElementById('data_devolucao').value < this.value) {
+            document.getElementById('data_devolucao').value = this.value;
+        }
+    });
+    </script>
+</body>
+</html>
+
+
+
+
+
+

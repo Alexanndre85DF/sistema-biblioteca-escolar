@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastro de Livros - Sistema Biblioteca Escolar</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    h1 {
+      color: #0056b3;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    h2 {
+      color: #0056b3;
+      margin: 30px 0 20px 0;
+    }
+
+    .form-container {
+      background: #fff;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: #0056b3;
+      outline: none;
+      box-shadow: 0 0 5px rgba(0,86,179,0.2);
+    }
+
+    .form-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 25px;
+    }
+
+    .required-info {
+      color: #666;
+      font-style: italic;
+      font-size: 14px;
+    }
+
+    .main-button {
+      background-color: #0056b3;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+
+    .main-button:hover {
+      background-color: #003d82;
+    }
+
+    .export-buttons {
+      margin: 20px 0;
+      display: flex;
+      gap: 10px;
+    }
+
+    .search-bar {
+      width: 100%;
+      padding: 12px;
+      margin: 20px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #0056b3;
+      color: white;
+      font-weight: bold;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+
+    tr:hover {
+      background-color: #f2f2f2;
+    }
+
+    .delete-button {
+      color: #dc3545;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .delete-button:hover {
+      color: #bd2130;
+    }
+
+    .back-button {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      margin-top: 20px;
+      transition: background-color 0.3s;
+    }
+
+    .back-button:hover {
+      background-color: #218838;
+    }
+
+    select optgroup {
+      font-weight: bold;
+      color: #333;
+    }
+
+    select option {
+      padding: 5px;
+    }
+
+    .empty-message {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="logo-container">
+    <img src="{{ url_for('static', filename='logosbe.png') }}" alt="Logo Sistema Biblioteca Escolar">
+  </div>
+  <div class="container">
+    <h1>Cadastro de Livros</h1>
+
+    <div class="form-container">
+      <form method="POST" id="formLivro">
+        <div class="form-group">
+          <label for="titulo">Título do Livro: *</label>
+          <input type="text" id="titulo" name="titulo" required>
+        </div>
+
+        <div class="form-group">
+          <label for="autor">Autor do Livro: *</label>
+          <input type="text" id="autor" name="autor" required>
+        </div>
+
+        <div class="form-group">
+          <label for="editora">Editora:</label>
+          <input type="text" id="editora" name="editora">
+        </div>
+
+        <div class="form-group">
+          <label for="ano">Ano de Publicação:</label>
+          <input type="text" id="ano" name="ano">
+        </div>
+
+        <div class="form-group">
+          <label for="categoria">Categoria: *</label>
+          <select id="categoria" name="categoria" required>
+            <option value="">Selecione uma Categoria</option>
+            <optgroup label="1. Literatura e Ficção">
+              <option value="Romance">Romance</option>
+              <option value="Contos e Crônicas">Contos e Crônicas</option>
+              <option value="Poesia">Poesia</option>
+              <option value="Teatro">Teatro</option>
+              <option value="Ficção Científica e Fantasia">Ficção Científica e Fantasia</option>
+              <option value="Mistério/Terror">Mistério/Terror</option>
+              <option value="Clássicos da Literatura">Clássicos da Literatura</option>
+              <option value="Gibis/Quadrinhos">Gibis/Quadrinhos</option>
+            </optgroup>
+            <optgroup label="2. Ciências Humanas e Sociais">
+              <option value="Filosofia">Filosofia</option>
+              <option value="Psicologia">Psicologia</option>
+              <option value="Religião e Mitologia">Religião e Mitologia</option>
+              <option value="História">História</option>
+              <option value="Geografia">Geografia</option>
+              <option value="Sociologia e Política">Sociologia e Política</option>
+            </optgroup>
+            <optgroup label="3. Línguas e Comunicação">
+              <option value="Gramática e Linguística">Gramática e Linguística</option>
+              <option value="Dicionários">Dicionários</option>
+              <option value="Livros em Outras Línguas">Livros em Outras Línguas</option>
+              <option value="Redação e Oratória">Redação e Oratória</option>
+            </optgroup>
+            <optgroup label="4. Matemática e Ciências da Natureza">
+              <option value="Matemática">Matemática</option>
+              <option value="Física">Física</option>
+              <option value="Química">Química</option>
+              <option value="Biologia e Ciências Ambientais">Biologia e Ciências Ambientais</option>
+            </optgroup>
+            <optgroup label="5. Artes e Esportes">
+              <option value="Música e Dança">Música e Dança</option>
+              <option value="Pintura, Desenho e Fotografia">Pintura, Desenho e Fotografia</option>
+              <option value="Cinema e Teatro">Cinema e Teatro</option>
+              <option value="Esportes e Jogos">Esportes e Jogos</option>
+            </optgroup>
+            <optgroup label="6. Tecnologia e Informática">
+              <option value="Informática Básica">Informática Básica</option>
+              <option value="Programação e Robótica">Programação e Robótica</option>
+              <option value="Engenharia e Invenções">Engenharia e Invenções</option>
+            </optgroup>
+            <optgroup label="7. Literatura Infantojuvenil">
+              <option value="Livros Ilustrados">Livros Ilustrados</option>
+              <option value="Contos de Fadas e Fábulas">Contos de Fadas e Fábulas</option>
+              <option value="Livros Interativos">Livros Interativos</option>
+              <option value="Infantil (até 10 anos)">Infantil (até 10 anos)</option>
+              <option value="Juvenil (11 a 14 anos)">Juvenil (11 a 14 anos)</option>
+            </optgroup>
+            <optgroup label="8. Material Didático e Referência">
+              <option value="Livros Didáticos">Livros Didáticos</option>
+              <option value="Enciclopédias">Enciclopédias</option>
+              <option value="Atlas e Mapas">Atlas e Mapas</option>
+              <option value="Guias de Estudo">Guias de Estudo</option>
+            </optgroup>
+            <optgroup label="9. Outros">
+              <option value="Livros Raros ou Especiais">Livros Raros ou Especiais</option>
+              <option value="Temas Transversais">Temas Transversais</option>
+              <option value="Outros">Outros</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="quantidade">Quantidade:</label>
+          <input type="number" id="quantidade" name="quantidade" min="0" value="1">
+        </div>
+
+        <div class="form-group">
+          <label for="localizacao">Localização:</label>
+          <input type="text" id="localizacao" name="localizacao" placeholder="Ex: Prateleira 2B">
+        </div>
+
+        <div class="form-group">
+          <label for="codigo_interno">Código Interno:</label>
+          <input type="text" id="codigo_interno" name="codigo_interno">
+        </div>
+
+        <div class="form-group">
+          <label for="observacoes">Observações:</label>
+          <textarea id="observacoes" name="observacoes" rows="3"></textarea>
+        </div>
+
+        <div class="form-footer">
+          <small class="required-info">* Campos obrigatórios</small>
+          <button type="submit" class="main-button">Adicionar Livro</button>
+        </div>
+      </form>
+    </div>
+
+    <h2>Livros Cadastrados</h2>
+
+    <div class="export-buttons">
+      <a href="{{ url_for('exportar_livros_excel') }}">
+        <button class="main-button">Exportar Excel</button>
+      </a>
+      <a href="{{ url_for('exportar_livros_pdf') }}">
+        <button class="main-button">Exportar PDF</button>
+      </a>
+    </div>
+
+    <input type="text" id="searchLivro" placeholder="Pesquisar em todos os campos..." class="search-bar" onkeyup="filtrarLivros()">
+
+    {% if livros %}
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Título</th>
+          <th>Autor</th>
+          <th>Editora</th>
+          <th>Ano</th>
+          <th>Categoria</th>
+          <th>Quantidade</th>
+          <th>Localização</th>
+          <th>Código</th>
+          <th>Observações</th>
+          <th>Disponível</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for livro in livros %}
+        <tr>
+          <td>{{ livro.id }}</td>
+          <td>{{ livro.titulo }}</td>
+          <td>{{ livro.autor }}</td>
+          <td>{{ livro.editora }}</td>
+          <td>{{ livro.ano }}</td>
+          <td>{{ livro.categoria }}</td>
+          <td>{{ livro.quantidade }}</td>
+          <td>{{ livro.localizacao }}</td>
+          <td>{{ livro.codigo_interno }}</td>
+          <td>{{ livro.observacoes }}</td>
+          <td>{{ 'Sim' if livro.disponivel else 'Não' }}</td>
+          <td>
+            <a href="{{ url_for('excluir_livro', id=livro.id) }}" class="delete-button" onclick="return confirm('Tem certeza que deseja excluir este livro?')">Excluir</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="empty-message">Nenhum livro cadastrado ainda.</p>
+    {% endif %}
+
+    <div class="back-container">
+      <a href="{{ url_for('index') }}" class="back-button">Voltar ao Início</a>
+    </div>
+  </div>
+
+  <script>
+    function filtrarLivros() {
+      var input = document.getElementById("searchLivro");
+      var filter = input.value.toLowerCase();
+      var table = document.querySelector("table");
+      var tr = table.getElementsByTagName("tr");
+
+      for (var i = 1; i < tr.length; i++) {
+        var td = tr[i].getElementsByTagName("td");
+        var encontrado = false;
+        
+        for (var j = 0; j < td.length - 1; j++) {
+          var cell = td[j];
+          if (cell) {
+            var txtValue = cell.textContent || cell.innerText;
+            if (txtValue.toLowerCase().indexOf(filter) > -1) {
+              encontrado = true;
+              break;
+            }
+          }
+        }
+        
+        tr[i].style.display = encontrado ? "" : "none";
+      }
+    }
+  </script>
+</body>
+</html>
+
+
+
+

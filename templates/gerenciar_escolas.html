@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerenciar Escolas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .delete-button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .delete-button:hover {
+            background-color: #c82333;
+        }
+        
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-container">
+        <img src="{{ url_for('static', filename='logosbe.png') }}" alt="Logo Sistema Biblioteca Escolar">
+    </div>
+    <div class="container">
+        <a href="{{ url_for('index') }}" class="back-button">Voltar</a>
+        <h1>Gerenciar Escolas</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Endereço</th>
+                        <th>Telefone</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for escola in escolas %}
+                    <tr>
+                        <td>{{ escola.id }}</td>
+                        <td>{{ escola.nome }}</td>
+                        <td>{{ escola.endereco }}</td>
+                        <td>{{ escola.telefone }}</td>
+                        <td class="action-buttons">
+                            <a href="{{ url_for('excluir_escola', id=escola.id) }}" 
+                               class="delete-button"
+                               onclick="return confirm('Tem certeza que deseja excluir esta escola? Esta ação não pode ser desfeita e excluirá todos os dados relacionados à escola.')">
+                                Excluir
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema Biblioteca Escolar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .container {
+            text-align: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .escola-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            text-align: left;
+            color: #004aad;
+            font-size: 14px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .escola-nome {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .usuario-info {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .logout-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .logout-button:hover {
+            background-color: #218838;
+        }
+
+        .main-title {
+            color: #004aad;
+            margin-bottom: 40px;
+            padding-top: 40px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-container">
+        <img src="{{ url_for('static', filename='logosbe.png') }}" alt="Logo Sistema Biblioteca Escolar">
+    </div>
+    <div class="container">
+        <div class="escola-info">
+            <div class="escola-nome">{{ session.get('escola_nome', 'Escola') }}</div>
+            <div class="usuario-info">Usuário: {{ session.get('usuario_cpf', '') }}</div>
+        </div>
+        
+        <a href="{{ url_for('logout') }}" class="logout-button">Sair</a>
+        <h1 class="main-title">Biblioteca Escolar</h1>
+        <div class="button-group">
+            <a href="{{ url_for('livros') }}" class="main-button">Cadastro de Livros</a>
+            <a href="{{ url_for('emprestimos') }}" class="main-button">Registro de Empréstimos</a>
+            <a href="{{ url_for('relatorios') }}" class="main-button">Relatórios</a>
+            <a href="{{ url_for('cadastro_usuario') }}" class="main-button">Cadastrar Novo Usuário</a>
+            <a href="{{ url_for('alterar_senha') }}" class="main-button">Alterar Senha</a>
+            {% if session.get('tipo_usuario') == 'super_admin' %}
+            <a href="{{ url_for('gerenciar_escolas') }}" class="main-button">Gerenciar Escolas</a>
+            <a href="{{ url_for('gerenciar_usuarios') }}" class="main-button">Gerenciar Usuários</a>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
+
+

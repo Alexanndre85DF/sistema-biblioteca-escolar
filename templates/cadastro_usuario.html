@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastrar Novo Usuário</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            margin: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .form-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 350px;
+        }
+
+        .form-vertical input {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .form-vertical input:focus {
+            border-color: #004aad;
+            box-shadow: 0 0 0 2px rgba(0, 74, 173, 0.1);
+        }
+
+        .form-vertical button {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .user-info {
+            text-align: center;
+            margin: 10px 0 20px 0;
+            color: #004aad;
+            width: 100%;
+        }
+
+        h1 {
+            margin: 0 0 20px 0;
+            text-align: center;
+            color: #004aad;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-container {
+            margin-top: 20px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .flash-message {
+            width: 100%;
+            text-align: center;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+
+        .new-badge {
+            background-color: #00a3ff;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <span class="new-badge">NEW</span>
+            Cadastrar Novo Usuário
+        </h1>
+
+        <div class="user-info">
+        <p>Usuário atual: {{ usuario_cpf }}</p>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-message">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" class="form-vertical">
+            <input type="text" name="cpf" id="cpf" placeholder="CPF do Novo Usuário" maxlength="14" required>
+            <input type="password" name="senha" placeholder="Senha do Novo Usuário" required>
+            <button class="main-button" type="submit">Cadastrar Usuário</button>
+        </form>
+
+        <div class="back-container">
+            <a href="{{ url_for('index') }}" class="back-button">Voltar ao Início</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('cpf').addEventListener('input', function(e) {
+            let value = e.target.value;
+            
+            // Remove tudo que não é número
+            value = value.replace(/\D/g, '');
+            
+            // Adiciona a formatação conforme digita
+            if (value.length >= 3) {
+                value = value.substring(0, 3) + '.' + value.substring(3);
+            }
+            if (value.length >= 7) {
+                value = value.substring(0, 7) + '.' + value.substring(7);
+            }
+            if (value.length >= 11) {
+                value = value.substring(0, 11) + '-' + value.substring(11);
+            }
+            
+            // Limita ao tamanho máximo de um CPF formatado (14 caracteres)
+            if (value.length > 14) {
+                value = value.substring(0, 14);
+            }
+            
+            e.target.value = value;
+        });
+
+        // Adiciona validação antes do envio do formulário
+        document.querySelector('form').addEventListener('submit', function(e) {
+            let cpf = document.getElementById('cpf').value;
+            // Remove a formatação para enviar apenas números
+            document.getElementById('cpf').value = cpf.replace(/\D/g, '');
+        });
+    </script>
+</body>
+</html>

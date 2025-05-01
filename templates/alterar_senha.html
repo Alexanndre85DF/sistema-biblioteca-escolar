@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Alterar Senha</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .form-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .form-vertical input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .form-vertical button {
+            margin-top: 10px;
+        }
+        .password-requirements {
+            font-size: 14px;
+            color: #666;
+            margin: 10px 0;
+            text-align: left;
+        }
+        .flash-message {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f8d7da;
+            color: #721c24;
+            text-align: center;
+        }
+        .flash-message.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2 class="system-title">SISTEMA BIBLIOTECA ESCOLAR</h2>
+        <h1>Alterar Senha</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash-message {% if category == 'success' %}success{% endif %}">
+                <p>{{ message }}</p>
+              </div>
+              {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% if not verificado %}
+        <!-- Formulário de verificação -->
+        <form method="POST" class="form-vertical">
+            <input type="text" name="cpf" id="cpf" placeholder="Digite seu CPF" required 
+                   oninput="this.value = this.value.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')" 
+                   maxlength="14">
+            <input type="password" name="senha_atual" id="senha_atual" placeholder="Digite sua senha atual" required>
+            <button type="submit" class="primary-button">Verificar Credenciais</button>
+            <a href="{{ url_for('index') }}" class="back-button">Voltar ao Início</a>
+        </form>
+        {% else %}
+        <!-- Formulário de alteração de senha -->
+        <form method="POST" class="form-vertical" onsubmit="return validateForm()">
+            <input type="password" name="nova_senha" id="nova_senha" placeholder="Digite a nova senha" required>
+            <input type="password" name="confirmar_senha" id="confirmar_senha" placeholder="Confirme a nova senha" required>
+            
+            <div class="password-requirements">
+                A senha deve conter:
+                <ul>
+                    <li>Mínimo de 6 caracteres</li>
+                    <li>Pelo menos uma letra maiúscula</li>
+                    <li>Pelo menos um número</li>
+                </ul>
+            </div>
+
+            <button type="submit" class="primary-button">Alterar Senha</button>
+            <a href="{{ url_for('index') }}" class="back-button">Voltar ao Início</a>
+        </form>
+        {% endif %}
+    </div>
+
+    <script>
+        function validateForm() {
+            const novaSenha = document.getElementById('nova_senha').value;
+            const confirmarSenha = document.getElementById('confirmar_senha').value;
+
+            // Verifica se as senhas são iguais
+            if (novaSenha !== confirmarSenha) {
+                alert('As senhas não coincidem!');
+                return false;
+            }
+
+            // Verifica o comprimento mínimo
+            if (novaSenha.length < 6) {
+                alert('A senha deve ter pelo menos 6 caracteres!');
+                return false;
+            }
+
+            // Verifica se contém pelo menos uma letra maiúscula
+            if (!/[A-Z]/.test(novaSenha)) {
+                alert('A senha deve conter pelo menos uma letra maiúscula!');
+                return false;
+            }
+
+            // Verifica se contém pelo menos um número
+            if (!/[0-9]/.test(novaSenha)) {
+                alert('A senha deve conter pelo menos um número!');
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+</body>
+</html>
+
