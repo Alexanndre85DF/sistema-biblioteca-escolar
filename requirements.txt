@@ -8,4 +8,4 @@ pandas==1.5.3
 fpdf2==2.7.8
 reportlab==3.6.13
 pypdf>=3.0.0
-xhtml2pdf==0.2.11
+xhtml2pdf
