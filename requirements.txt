@@ -1,6 +1,6 @@
 wheel==0.41.2
 flask==2.0.1
-numpy==1.23.5
+numpy==1.23.5 --only-binary=:all:
 pandas==1.3.3
 fpdf==1.7.2
 xhtml2pdf==0.2.5
