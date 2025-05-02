@@ -2,6 +2,6 @@ wheel==0.41.2
 flask==2.0.1
 numpy==1.23.5 --only-binary=:all:
 pandas==1.5.3
-fpdf==1.7.2
+fpdf2==2.7.8
 xhtml2pdf==0.2.5
 reportlab==3.6.8
