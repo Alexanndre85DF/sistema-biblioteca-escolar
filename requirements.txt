@@ -7,6 +7,7 @@ numpy==1.23.5 --only-binary=:all:
 pandas==1.5.3
 fpdf2==2.7.8
 reportlab==3.6.12
-xhtml2pdf==0.2.7
-pypdf>=3.0.0
+xhtml2pdf==0.2.8  # Atualizado para a última versão estável
+pypdf==3.17.0     # Versão fixa (evita conflitos com xhtml2pdf)
+html5lib==1.1      # Adicionado (dependência indireta do xhtml2pdf)
 
