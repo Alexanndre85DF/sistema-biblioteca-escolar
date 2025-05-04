@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 flask==2.0.1
 werkzeug==2.0.3
 jinja2==3.0.3
@@ -5,3 +6,29 @@ gunicorn==21.2.0
 wheel==0.41.2
 numpy==1.23.5 --only-binary=:all:
 pandas==1.5.3
+=======
+flask==2.0.1
+werkzeug==2.0.3
+jinja2==3.0.3
+gunicorn==21.2.0
+wheel==0.41.2
+numpy==1.23.5 --only-binary=:all:
+pandas==1.5.3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> dfb7b428de7f98b31df3011b5cbc9d3db9f71220
