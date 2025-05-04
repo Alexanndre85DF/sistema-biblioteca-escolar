@@ -12,7 +12,7 @@ app.secret_key = 'biblioteca_secret_key'  # Chave secreta para sessões
 
 # Função para conectar ao banco
 def get_db_connection():
-    conn = sqlite3.connect('database_new.db')
+    conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
     return conn
 
