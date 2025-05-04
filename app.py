@@ -1,10 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 import sqlite3  # Corrigido de sqlite
 import hashlib
+import io
 import pandas as pd
-from fpdf import FPDF
-import io  # Corrigido de lo
-from xhtml2pdf import pisa
+from flask import make_response
 
 app = Flask(__name__)
 
@@ -370,476 +369,6 @@ def livros_relatorio():
     conn.close()
     return render_template('livros_relatorio.html', livros=livros, usuario_cpf=session['usuario_cpf'])
 
-@app.route('/exportar_livros_excel')
-def exportar_livros_excel():
-    if 'usuario_cpf' not in session:
-        return redirect(url_for('login'))
-
-    escola_id = session.get('escola_id')
-    conn = get_db_connection()
-    livros = conn.execute('SELECT * FROM livros WHERE escola_id = ?', (escola_id,)).fetchall()
-    conn.close()
-
-    # Converter os resultados para lista de dicionários
-    dados = []
-    for livro in livros:
-        dados.append({
-            'ID': livro['id'],
-            'Título': livro['titulo'],
-            'Autor': livro['autor'],
-            'Editora': livro['editora'],
-            'Ano': livro['ano'],
-            'Categoria': livro['categoria'],
-            'Quantidade': livro['quantidade'],
-            'Localização': livro['localizacao'],
-            'Código Interno': livro['codigo_interno'],
-            'Observações': livro['observacoes'],
-            'Disponível': 'Sim' if livro['disponivel'] else 'Não'
-        })
-
-    df = pd.DataFrame(dados)
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df.to_excel(writer, index=False)
-    output.seek(0)
-
-    return send_file(
-        output,
-        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        as_attachment=True,
-        download_name=f'livros_escola_{escola_id}.xlsx'
-    )
-
-@app.route('/exportar_livros_pdf')
-def exportar_livros_pdf():
-    if 'usuario_cpf' not in session:
-        return redirect(url_for('login'))
-
-    escola_id = session.get('escola_id')
-    escola_nome = session.get('escola_nome', 'Escola')
-    
-    conn = get_db_connection()
-    livros = conn.execute('SELECT * FROM livros WHERE escola_id = ?', (escola_id,)).fetchall()
-    conn.close()
-
-    html = f"""
-    <h1 style='text-align: center;'>Relatório de Livros - {escola_nome}</h1>
-    <table border='1' cellspacing='0' cellpadding='5' style='width: 100%; border-collapse: collapse;'>
-        <tr style='background-color: #f2f2f2;'>
-            <th>ID</th>
-            <th>Título</th>
-            <th>Autor</th>
-            <th>Editora</th>
-            <th>Ano</th>
-            <th>Categoria</th>
-            <th>Quantidade</th>
-            <th>Localização</th>
-            <th>Código</th>
-            <th>Observações</th>
-            <th>Disponível</th>
-        </tr>
-    """
-    
-    for livro in livros:
-        disponivel = 'Sim' if livro['disponivel'] else 'Não'
-        html += f"""
-        <tr>
-            <td>{livro['id']}</td>
-            <td>{livro['titulo']}</td>
-            <td>{livro['autor']}</td>
-            <td>{livro['editora']}</td>
-            <td>{livro['ano']}</td>
-            <td>{livro['categoria']}</td>
-            <td>{livro['quantidade']}</td>
-            <td>{livro['localizacao']}</td>
-            <td>{livro['codigo_interno']}</td>
-            <td>{livro['observacoes']}</td>
-            <td>{disponivel}</td>
-        </tr>
-        """
-    html += "</table>"
-
-    # Adicionar CSS para melhorar a aparência
-    html = f"""
-    <style>
-        @page {{
-            size: landscape;
-            margin: 1cm;
-        }}
-        table {{
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            width: 100%;
-            border-collapse: collapse;
-        }}
-        th {{
-            background-color: #f2f2f2;
-            padding: 8px;
-            text-align: left;
-        }}
-        td {{
-            padding: 8px;
-            border: 1px solid #ddd;
-        }}
-        tr:nth-child(even) {{
-            background-color: #f9f9f9;
-        }}
-        h1 {{
-            font-family: Arial, sans-serif;
-            color: #333;
-            margin-bottom: 20px;
-        }}
-    </style>
-    {html}
-    """
-
-    pdf_stream = io.BytesIO()
-    pisa.CreatePDF(io.StringIO(html), dest=pdf_stream)
-    pdf_stream.seek(0)
-
-    return send_file(
-        pdf_stream,
-        mimetype='application/pdf',
-        as_attachment=True,
-        download_name=f'livros_escola_{escola_id}.pdf'
-    )
-
-# Relatório de empréstimos em curso
-@app.route('/relatorios/emprestimos_curso')
-def emprestimos_curso():
-    if 'usuario_cpf' not in session:
-        return redirect(url_for('login'))
-
-    escola_id = session.get('escola_id')
-    conn = get_db_connection()
-    emprestimos = conn.execute('''
-        SELECT e.*, l.titulo FROM emprestimos e
-        JOIN livros l ON e.livro_id = l.id
-        WHERE e.data_devolvido IS NULL AND e.escola_id = ?
-    ''', (escola_id,)).fetchall()
-    conn.close()
-    return render_template('emprestimos_curso.html', emprestimos=emprestimos, usuario_cpf=session['usuario_cpf'])
-
-
-# Relatório de empréstimos devolvidos
-@app.route('/relatorios/emprestimos_devolvidos')
-def emprestimos_devolvidos():
-    if 'usuario_cpf' not in session:
-        return redirect(url_for('login'))
-
-    escola_id = session.get('escola_id')
-    conn = get_db_connection()
-    emprestimos = conn.execute('''
-        SELECT e.*, l.titulo FROM emprestimos e
-        JOIN livros l ON e.livro_id = l.id
-        WHERE e.data_devolvido IS NOT NULL AND e.escola_id = ?
-    ''', (escola_id,)).fetchall()
-    conn.close()
-    return render_template('emprestimos_devolvidos.html', emprestimos=emprestimos, usuario_cpf=session['usuario_cpf'])
-
-def formatar_data(data):
-    if not data:
-        return ''
-    partes = data.split('-')
-    if len(partes) != 3:
-        return data
-    return f"{partes[2]}/{partes[1]}/{partes[0]}"
-
-@app.route('/exportar_emprestimos_curso_excel')
-def exportar_emprestimos_curso_excel():
-    if 'usuario_cpf' not in session:
-        return redirect(url_for('login'))
-
-    escola_id = session.get('escola_id')
-    conn = get_db_connection()
-    emprestimos = conn.execute('''
-        SELECT e.aluno, e.turma, e.telefone, l.titulo, e.data_emprestimo, e.data_devolucao 
-        FROM emprestimos e
-        JOIN livros l ON e.livro_id = l.id
-        WHERE e.data_devolvido IS NULL AND e.escola_id = ?
-    ''', (escola_id,)).fetchall()
-    conn.close()
-
-    # Converter os resultados para lista de dicionários
-    dados = []
-    for e in emprestimos:
-        dados.append({
-            'Aluno': e[0],
-            'Turma': e[1],
-            'Telefone': e[2],
-            'Livro': e[3],
-            'Data Empréstimo': formatar_data(e[4]),
-            'Data para Devolução': formatar_data(e[5])
-        })
-
-    df = pd.DataFrame(dados)
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df.to_excel(writer, index=False)
-    output.seek(0)
-
-    return send_file(
-        output,
-        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        as_attachment=True,
-        download_name=f'emprestimos_curso_escola_{escola_id}.xlsx'
-    )
-
-@app.route('/exportar_emprestimos_curso_pdf')
-def exportar_emprestimos_curso_pdf():
-    if 'usuario_cpf' not in session:
-        return redirect(url_for('login'))
-
-    escola_id = session.get('escola_id')
-    escola_nome = session.get('escola_nome', 'Escola')
-    
-    conn = get_db_connection()
-    emprestimos = conn.execute('''
-        SELECT e.aluno, e.turma, e.telefone, l.titulo, e.data_emprestimo, e.data_devolucao 
-        FROM emprestimos e
-        JOIN livros l ON e.livro_id = l.id
-        WHERE e.data_devolvido IS NULL AND e.escola_id = ?
-    ''', (escola_id,)).fetchall()
-    conn.close()
-
-    html = f"""
-    <h1 style='text-align: center;'>Relatório de Empréstimos em Curso - {escola_nome}</h1>
-    <table border='1' cellspacing='0' cellpadding='5' style='width: 100%; border-collapse: collapse;'>
-        <tr style='background-color: #f2f2f2;'>
-            <th>Aluno</th>
-            <th>Turma</th>
-            <th>Telefone</th>
-            <th>Livro</th>
-            <th>Data Empréstimo</th>
-            <th>Data para Devolução</th>
-        </tr>
-    """
-    
-    for e in emprestimos:
-        html += f"""
-        <tr>
-            <td>{e[0]}</td>
-            <td>{e[1]}</td>
-            <td>{e[2]}</td>
-            <td>{e[3]}</td>
-            <td>{formatar_data(e[4])}</td>
-            <td>{formatar_data(e[5])}</td>
-        </tr>
-        """
-    html += "</table>"
-
-    # Adicionar CSS para melhorar a aparência
-    html = f"""
-    <style>
-        @page {{
-            size: landscape;
-            margin: 1cm;
-        }}
-        table {{
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            width: 100%;
-            border-collapse: collapse;
-        }}
-        th {{
-            background-color: #f2f2f2;
-            padding: 8px;
-            text-align: left;
-        }}
-        td {{
-            padding: 8px;
-            border: 1px solid #ddd;
-        }}
-        tr:nth-child(even) {{
-            background-color: #f9f9f9;
-        }}
-        h1 {{
-            font-family: Arial, sans-serif;
-            color: #333;
-            margin-bottom: 20px;
-        }}
-    </style>
-    {html}
-    """
-
-    pdf_stream = io.BytesIO()
-    pisa.CreatePDF(io.StringIO(html), dest=pdf_stream)
-    pdf_stream.seek(0)
-
-    return send_file(
-        pdf_stream,
-        mimetype='application/pdf',
-        as_attachment=True,
-        download_name=f'emprestimos_curso_escola_{escola_id}.pdf'
-    )
-
-@app.route('/exportar_emprestimos_devolvidos_excel')
-def exportar_emprestimos_devolvidos_excel():
-    if 'usuario_cpf' not in session:
-        return redirect(url_for('login'))
-
-    escola_id = session.get('escola_id')
-    conn = get_db_connection()
-    emprestimos = conn.execute('''
-        SELECT e.aluno, e.turma, e.telefone, l.titulo, e.data_emprestimo, e.data_devolucao, e.data_devolvido
-        FROM emprestimos e
-        JOIN livros l ON e.livro_id = l.id
-        WHERE e.data_devolvido IS NOT NULL AND e.escola_id = ?
-    ''', (escola_id,)).fetchall()
-    conn.close()
-
-    # Converter os resultados para lista de dicionários
-    dados = []
-    for e in emprestimos:
-        dados.append({
-            'Aluno': e[0],
-            'Turma': e[1],
-            'Telefone': e[2],
-            'Livro': e[3],
-            'Data Empréstimo': formatar_data(e[4]),
-            'Data para Devolução': formatar_data(e[5]),
-            'Data Devolvido': formatar_data(e[6])
-        })
-
-    df = pd.DataFrame(dados)
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df.to_excel(writer, index=False)
-    output.seek(0)
-
-    return send_file(
-        output,
-        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        as_attachment=True,
-        download_name=f'emprestimos_devolvidos_escola_{escola_id}.xlsx'
-    )
-
-@app.route('/exportar_emprestimos_devolvidos_pdf')
-def exportar_emprestimos_devolvidos_pdf():
-    if 'usuario_cpf' not in session:
-        return redirect(url_for('login'))
-
-    escola_id = session.get('escola_id')
-    escola_nome = session.get('escola_nome', 'Escola')
-    
-    conn = get_db_connection()
-    emprestimos = conn.execute('''
-        SELECT e.aluno, e.turma, e.telefone, l.titulo, e.data_emprestimo, e.data_devolucao, e.data_devolvido 
-        FROM emprestimos e
-        JOIN livros l ON e.livro_id = l.id
-        WHERE e.data_devolvido IS NOT NULL AND e.escola_id = ?
-    ''', (escola_id,)).fetchall()
-    conn.close()
-
-    html = f"""
-    <h1 style='text-align: center;'>Relatório de Empréstimos Devolvidos - {escola_nome}</h1>
-    <table border='1' cellspacing='0' cellpadding='5' style='width: 100%; border-collapse: collapse;'>
-        <tr style='background-color: #f2f2f2;'>
-            <th>Aluno</th>
-            <th>Turma</th>
-            <th>Telefone</th>
-            <th>Livro</th>
-            <th>Data Empréstimo</th>
-            <th>Data para Devolução</th>
-            <th>Data Devolvido</th>
-        </tr>
-    """
-    
-    for e in emprestimos:
-        html += f"""
-        <tr>
-            <td>{e[0]}</td>
-            <td>{e[1]}</td>
-            <td>{e[2]}</td>
-            <td>{e[3]}</td>
-            <td>{formatar_data(e[4])}</td>
-            <td>{formatar_data(e[5])}</td>
-            <td>{formatar_data(e[6])}</td>
-        </tr>
-        """
-    html += "</table>"
-
-    # Adicionar CSS para melhorar a aparência
-    html = f"""
-    <style>
-        @page {{
-            size: landscape;
-            margin: 1cm;
-        }}
-        table {{
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            width: 100%;
-            border-collapse: collapse;
-        }}
-        th {{
-            background-color: #f2f2f2;
-            padding: 8px;
-            text-align: left;
-        }}
-        td {{
-            padding: 8px;
-            border: 1px solid #ddd;
-        }}
-        tr:nth-child(even) {{
-            background-color: #f9f9f9;
-        }}
-        h1 {{
-            font-family: Arial, sans-serif;
-            color: #333;
-            margin-bottom: 20px;
-        }}
-    </style>
-    {html}
-    """
-
-    pdf_stream = io.BytesIO()
-    pisa.CreatePDF(io.StringIO(html), dest=pdf_stream)
-    pdf_stream.seek(0)
-
-    return send_file(
-        pdf_stream,
-        mimetype='application/pdf',
-        as_attachment=True,
-        download_name=f'emprestimos_devolvidos_escola_{escola_id}.pdf'
-    )
-
-@app.route('/relatorio_excel')
-def relatorio_excel():
-    if 'usuario_cpf' not in session:
-        return redirect(url_for('login'))
-
-    escola_id = session.get('escola_id')
-    conn = get_db_connection()
-
-    emprestimos = conn.execute('''
-        SELECT e.id, e.aluno, e.turma, e.telefone, l.titulo AS livro,
-               e.data_emprestimo, e.data_devolucao
-        FROM emprestimos e
-        JOIN livros l ON e.livro_id = l.id
-        WHERE e.escola_id = ?
-    ''', (escola_id,)).fetchall()
-
-    conn.close()
-
-    # Converte os dados para DataFrame
-    df = pd.DataFrame(emprestimos, columns=[
-        'ID', 'Aluno', 'Turma', 'Telefone', 'Livro',
-        'Data do Empréstimo', 'Data da Devolução'
-    ])
-
-    # Gera o Excel em memória
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name='Empréstimos')
-
-    output.seek(0)
-
-    return send_file(output,
-                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                     download_name='relatorio_emprestimos.xlsx',
-                     as_attachment=True)
-
 # Gerenciar escolas
 @app.route('/gerenciar_escolas')
 def gerenciar_escolas():
@@ -948,6 +477,71 @@ def excluir_escola(id):
         conn.close()
         
     return redirect(url_for('gerenciar_escolas'))
+
+@app.route('/exportar_livros_excel')
+def exportar_livros_excel():
+    if 'usuario_cpf' not in session:
+        return redirect(url_for('login'))
+    escola_id = session.get('escola_id')
+    conn = get_db_connection()
+    livros = conn.execute('SELECT * FROM livros WHERE escola_id = ?', (escola_id,)).fetchall()
+    conn.close()
+    df = pd.DataFrame(livros)
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name='Livros')
+    output.seek(0)
+    return send_file(output, download_name='livros.xlsx', as_attachment=True, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+@app.route('/emprestimos_curso')
+def emprestimos_curso():
+    if 'usuario_cpf' not in session:
+        return redirect(url_for('login'))
+    escola_id = session.get('escola_id')
+    conn = get_db_connection()
+    emprestimos = conn.execute('SELECT * FROM emprestimos WHERE escola_id = ? AND data_devolvido IS NULL', (escola_id,)).fetchall()
+    conn.close()
+    return render_template('emprestimos_curso.html', emprestimos=emprestimos, usuario_cpf=session['usuario_cpf'])
+
+@app.route('/emprestimos_devolvidos')
+def emprestimos_devolvidos():
+    if 'usuario_cpf' not in session:
+        return redirect(url_for('login'))
+    escola_id = session.get('escola_id')
+    conn = get_db_connection()
+    emprestimos = conn.execute('SELECT * FROM emprestimos WHERE escola_id = ? AND data_devolvido IS NOT NULL', (escola_id,)).fetchall()
+    conn.close()
+    return render_template('emprestimos_devolvidos.html', emprestimos=emprestimos, usuario_cpf=session['usuario_cpf'])
+
+@app.route('/exportar_emprestimos_curso_excel')
+def exportar_emprestimos_curso_excel():
+    if 'usuario_cpf' not in session:
+        return redirect(url_for('login'))
+    escola_id = session.get('escola_id')
+    conn = get_db_connection()
+    emprestimos = conn.execute('SELECT * FROM emprestimos WHERE escola_id = ? AND data_devolvido IS NULL', (escola_id,)).fetchall()
+    conn.close()
+    df = pd.DataFrame(emprestimos)
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name='Empréstimos em Curso')
+    output.seek(0)
+    return send_file(output, download_name='emprestimos_curso.xlsx', as_attachment=True, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+@app.route('/exportar_emprestimos_devolvidos_excel')
+def exportar_emprestimos_devolvidos_excel():
+    if 'usuario_cpf' not in session:
+        return redirect(url_for('login'))
+    escola_id = session.get('escola_id')
+    conn = get_db_connection()
+    emprestimos = conn.execute('SELECT * FROM emprestimos WHERE escola_id = ? AND data_devolvido IS NOT NULL', (escola_id,)).fetchall()
+    conn.close()
+    df = pd.DataFrame(emprestimos)
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name='Empréstimos Devolvidos')
+    output.seek(0)
+    return send_file(output, download_name='emprestimos_devolvidos.xlsx', as_attachment=True, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 # Rodar o servidor
 if __name__ == '__main__':
