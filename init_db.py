@@ -6,7 +6,7 @@ def criptografar_senha(senha):
     return hashlib.sha256(senha.encode()).hexdigest()
 
 # Nome do novo banco de dados
-DB_NAME = 'database_new.db'
+DB_NAME = 'database.db'
 
 # Remove o banco de dados se já existir
 if os.path.exists(DB_NAME):
