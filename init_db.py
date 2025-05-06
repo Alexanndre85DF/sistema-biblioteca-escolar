@@ -102,14 +102,20 @@ if cursor.fetchone()[0] == 0:
     cursor.execute('SELECT id FROM escolas')
     escolas = cursor.fetchall()
     
-    for escola_id in escolas:
+    for idx, escola_id in enumerate(escolas, start=1):
+        if idx == 1:
+            cpf = '12345678910'
+            senha = criptografar_senha('123456')
+        else:
+            cpf = f'admin{escola_id[0]}'
+            senha = senha_padrao
         cursor.execute(
             'INSERT INTO usuarios (cpf, senha, escola_id, tipo_usuario) VALUES (?, ?, ?, ?)',
-            (f'admin{escola_id[0]}', senha_padrao, escola_id[0], 'escola')
+            (cpf, senha, escola_id[0], 'escola')
         )
     print('\nUsuários iniciais criados:')
     print('Para escola 1:')
-    print('CPF: admin1')
+    print('CPF: 12345678910')
     print('Senha: 123456')
     print('\nPara escola 2:')
     print('CPF: admin2')
